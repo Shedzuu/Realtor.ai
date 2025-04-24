@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Apartment Finder</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FFC107;         /* Formal gold-yellow */
+            --primary-dark: #cc9a00;    /* Darker golden for hover */
+            --secondary: #FF6B6B;  
+            --light: #F8F9FA;
+            --dark: #343A40;
+            --gray: #6c757d;
+            --success: #28a745;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+            margin-right: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .header-text {
+            max-width: 600px;
+        }
+        
+        .header-text h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .header-text p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        main {
+            padding: 3rem 0;
+        }
+        
+        .search-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+        
+        .search-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 3px;
+            width: 60px;
+            background-color: var(--primary);
+        }
+        
+        .search-form textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            min-height: 120px;
+            transition: border-color 0.3s;
+            resize: vertical;
+        }
+        
+        .search-form textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74,111,222,0.1);
+        }
+        
+        .search-form button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-form button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .search-form button i {
+            margin-right: 8px;
+        }
+        
+        .search-examples {
+            margin-top: 1.5rem;
+            color: var(--gray);
+        }
+        
+        .search-examples p {
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .example-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .example-query {
+            background-color: #f1f4f9;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .example-query:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .apartment-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .apartment-card.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .apartment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .apartment-image {
+            height: 200px;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            font-size: 3rem;
+        }
+        
+        .apartment-info {
+            padding: 1.5rem;
+        }
+        
+        .apartment-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .apartment-address {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .apartment-address i {
+            margin-right: 5px;
+        }
+        
+        .apartment-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .apartment-features {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .feature i {
+            margin-right: 5px;
+            color: var(--gray);
+        }
+        
+        .apartment-description {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .apartment-contact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .contact-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .contact-btn i {
+            margin-right: 5px;
+        }
+        
+        .contact-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .save-btn {
+            background-color: transparent;
+            color: var(--gray);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .save-btn:hover {
+            color: var(--secondary);
+        }
+        
+        .no-results {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: none;
+        }
+        
+        .no-results i {
+            font-size: 3rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+        
+        .no-results h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .no-results p {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+        }
+        
+        .try-again-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .try-again-btn i {
+            margin-right: 8px;
+            font-size: 1rem;
+        }
+        
+        .try-again-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .error-message {
+            display: none;
+            background-color: #fff3f3;
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .success-message {
+            display: none;
+            background-color: #f0fff0;
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-logo i {
+            font-size: 1.8rem;
+            margin-right: 10px;
+        }
+        
+        .footer-logo h3 {
+            font-size: 1.5rem;
+        }
+        
+        .copyright {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+            
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header-text h2 {
+                font-size: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-building"></i>
+                    <h1>Smart Apartment Finder</h1>
+                </div>
+                <div class="header-text">
+                    <h2>Find your perfect apartment with AI</h2>
+                    <p>Describe what you're looking for in natural language and let our smart system find the best matches for you.</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <section class="search-section">
+            <h2 class="section-title">Describe Your Ideal Apartment</h2>
+            <div class="search-form">
+                <textarea id="search-input" placeholder="Example: I'm looking for a 2-bedroom apartment in Almaty, Almaly district with a kitchen size of at least 10 sq.m., close to schools and public transport..."></textarea>
+                <button id="search-btn">
+                    <i class="fas fa-search"></i>
+                    Find Apartments
+                </button>
+                <div class="error-message" id="error-message">
+                    <p><i class="fas fa-exclamation-circle"></i> Unable to connect to the server. Please make sure your local API is running.</p>
+                </div>
+                <div class="success-message" id="success-message">
+                    <p><i class="fas fa-check-circle"></i> Successfully connected to the API. Fetching results...</p>
+                </div>
+            </div>
+            <div class="search-examples">
+                <p><strong>Quick search examples:</strong></p>
+                <div class="example-queries">
+                    <div class="example-query" data-query="Ищу 2-комнатную квартиру в Алматы, Алмалинский район, до 200 000 тенге в месяц">2-комн. в Алмалинском р-не</div>
+                    <div class="example-query" data-query="Нужна 1-комнатная квартира рядом с метро, с мебелью и техникой">1-комн. рядом с метро</div>
+                    <div class="example-query" data-query="3-комнатная квартира в новостройке, с паркингом и охраной">3-комн. в новостройке</div>
+                    <div class="example-query" data-query="Квартира в центре города с хорошим ремонтом, до 300 000 тенге">Квартира в центре</div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="loading" id="loading">
+            <div class="loader"></div>
+            <p>Searching for the best apartments for you...</p>
+        </div>
+        
+        <section class="results-section" id="results-section">
+            <h2 class="section-title">Recommended Apartments</h2>
+            <div class="results-grid" id="results-grid">
+                <!-- Results will be populated here by JavaScript -->
+            </div>
+        </section>
+        
+        <div class="no-results" id="no-results">
+            <i class="fas fa-search"></i>
+            <h3>No apartments found</h3>
+            <p>Try adjusting your search criteria or explore other areas.</p>
+            <button class="try-again-btn">
+                <i class="fas fa-redo"></i>
+                Try Another Search
+            </button>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-building"></i>
+                    <h3>Smart Apartment Finder</h3>
+                </div>
+                <p class="copyright">© 2025 Smart Apartment Finder. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const loadingSection = document.getElementById('loading');
+            const resultsSection = document.getElementById('results-section');
+            const resultsGrid = document.getElementById('results-grid');
+            const noResultsSection = document.getElementById('no-results');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const exampleQueries = document.querySelectorAll('.example-query');
+            const tryAgainBtn = document.querySelector('.try-again-btn');
+            
+            // Add click event to example queries
+            exampleQueries.forEach(query => {
+                query.addEventListener('click', function() {
+                    searchInput.value = this.getAttribute('data-query');
+                    searchInput.focus();
+                });
+            });
+            
+            // Add click event to try again button
+            tryAgainBtn.addEventListener('click', function() {
+                noResultsSection.style.display = 'none';
+                searchInput.value = '';
+                searchInput.focus();
+                window.scrollTo({
+                    top: document.querySelector('.search-section').offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Add click event to search button
+            searchBtn.addEventListener('click', function() {
+                const userInput = searchInput.value.trim();
+                
+                if (userInput === '') {
+                    searchInput.focus();
+                    return;
+                }
+                
+                // Show loading section
+                loadingSection.style.display = 'block';
+                resultsSection.style.display = 'none';
+                noResultsSection.style.display = 'none';
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                
+                // Scroll to loading section
+                window.scrollTo({
+                    top: loadingSection.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+                
+                // Make API request
+                fetch("http://127.0.0.1:5000/recommend", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        user_input: userInput
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 3000);
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading section
+                    loadingSection.style.display = 'none';
+                    
+                    if (data && data.length > 0) {
+                        // Show results section
+                        resultsSection.style.display = 'block';
+                        
+                        // Clear previous results
+                        resultsGrid.innerHTML = '';
+                        
+                        // Display apartments
+                        data.forEach((apartment, index) => {
+                            const card = createApartmentCard(apartment, index);
+                            resultsGrid.appendChild(card);
+                            
+                            // Add animation with delay
+                            setTimeout(() => {
+                                card.classList.add('animated');
+                            }, 100 * index);
+                        });
+                        
+                        // Scroll to results section
+                        window.scrollTo({
+                            top: resultsSection.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        // Show no results section
+                        noResultsSection.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Hide loading section
+                    loadingSection.style.display = 'none';
+                    
+                    // Show error message
+                    errorMessage.style.display = 'block';
+                });
+            });
+            
+            // Function to create apartment card
+            function createApartmentCard(apartment, index) {
+                const card = document.createElement('div');
+                card.className = 'apartment-card';
+                
+                // Generate placeholder feature values if not provided
+                const rooms = apartment.rooms || Math.floor(Math.random() * 3) + 1;
+                const area = apartment.area || Math.floor(Math.random() * 50) + 30;
+                const floor = apartment.floor || Math.floor(Math.random() * 15) + 1;
+                
+                // Format price
+                const price = formatPrice(apartment.price);
+                
+                // Create HTML structure
+                card.innerHTML = `
+                    <div class="apartment-image">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="apartment-info">
+                        <h3 class="apartment-title">${apartment.title || `${rooms}-комнатная квартира ${area} м²`}</h3>
+                        <div class="apartment-address">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${apartment.adress || apartment.city_region || 'Алматы'}
+                        </div>
+                        <div class="apartment-price">${price} тг/месяц</div>
+                        <div class="apartment-features">
+                            <div class="feature">
+                                <i class="fas fa-door-open"></i> ${rooms} комн.
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-vector-square"></i> ${area} м²
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-building"></i> ${floor} этаж
+                            </div>
+                        </div>
+                        <p class="apartment-description">${apartment.description || 'Уютная квартира с хорошим ремонтом, развитая инфраструктура района.'}</p>
+                        <div class="apartment-contact">
+                            <a class="contact-btn" href="${apartment.url || '#'}" target="_blank">
+                                <i class="fas fa-phone-alt"></i> Связаться
+                            </a>
+                            <button class="save-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listener to save button
+                const saveBtn = card.querySelector('.save-btn');
+                saveBtn.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        icon.style.color = '#FF6B6B';
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        icon.style.color = '';
+                    }
+                });
+                
+                return card;
+            }
+            
+            // Function to format price
+            function formatPrice(price) {
+                if (!price) {
+                    // Generate random price between 100,000 and 300,000
+                    price = Math.floor(Math.random() * 200000) + 100000;
+                }
+                
+                // Format with spaces as thousand separators
+                return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+            }
+            
+            // Add keyboard event to search on Enter key
+            searchInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
